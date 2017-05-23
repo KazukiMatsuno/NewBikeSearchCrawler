@@ -191,7 +191,7 @@ public class WeBike extends AbstractSite {
             }
         }
         // TODO:ロガーでinspectionStrを出力する
-        logger.info("車検 : " + inspectionStr + " : " + inspectionStr);
+        logger.info("車検 : " + inspectionStr + " : " + inspection);
         return inspection;
     }
 
@@ -226,7 +226,7 @@ public class WeBike extends AbstractSite {
         }
 
         // TODO: ロガーでyearStrを出力する
-        logger.info("登録年数 : " + yearStr);
+        logger.info("登録年数 : " + yearStr + " : " + year);
         return year;
     }
 
@@ -245,6 +245,7 @@ public class WeBike extends AbstractSite {
                     break;
             }
         }
+        logger.info("価格 : " + priceStr + " : " + price);
         return price;
     }
 
