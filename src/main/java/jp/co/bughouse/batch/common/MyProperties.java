@@ -17,28 +17,29 @@ import org.apache.log4j.Logger;
  *
  * @author user
  */
-public class MyProperties{
-	// ロガー宣言
-	private static Logger logger = Logger.getLogger(MyProperties.class);
+public class MyProperties {
+    // ロガー宣言
 
-	public static Properties getProperties(String fileName) throws FileNotFoundException, IOException{
-		logger.info("START:getProperties" + fileName);
-		Properties properties = new Properties();
-		InputStream is;
-		try {
-			String separator = System.getProperty("file.separator");
-			
-			is = new BufferedInputStream(new FileInputStream(
-				System.getProperty("user.dir") + separator + "resources" + separator + fileName + ".properties"));
-			properties.load(is);
-		} catch (FileNotFoundException e) {
-			logger.error("ファイルが存在しません");
-			throw e;
-		} catch (IOException e) {
-			logger.error("ファイル読み込みに失敗しました");
-			throw e;
-		}
-		
-		return properties;
-	}
+    private static Logger logger = Logger.getLogger(MyProperties.class);
+
+    public static Properties getProperties(String fileName) throws FileNotFoundException, IOException {
+        logger.info("START:getProperties" + fileName);
+        Properties properties = new Properties();
+        InputStream is;
+        try {
+            String separator = System.getProperty("file.separator");
+
+            is = new BufferedInputStream(new FileInputStream(
+                    System.getProperty("user.dir") + separator + "resources" + separator + fileName + ".properties"));
+            properties.load(is);
+        } catch (FileNotFoundException e) {
+            logger.error("ファイルが存在しません");
+            throw e;
+        } catch (IOException e) {
+            logger.error("ファイル読み込みに失敗しました");
+            throw e;
+        }
+
+        return properties;
+    }
 }

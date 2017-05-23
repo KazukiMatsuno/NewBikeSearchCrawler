@@ -19,32 +19,32 @@ import org.apache.log4j.Logger;
  * @author user
  */
 public class MyGeocoder {
+
     private static boolean overQueryLimitFlag = false;
-	// ロガー宣言
-	private static final Logger logger = Logger.getLogger(MyGeocoder.class);
-    
-    public static LatLng getLocation(String address){
-        try{
-            if(overQueryLimitFlag){
+    // ロガー宣言
+    private static final Logger logger = Logger.getLogger(MyGeocoder.class);
+
+    public static LatLng getLocation(String address) {
+        try {
+            if (overQueryLimitFlag) {
                 //エラーフラグがfalseの場合は、LatLngを識別せず終了する
                 //Googleに無駄に403アクセスしてアクセス禁止にならないようにするため。
                 return null;
             }
-            
+
             GeocoderRequest request
                     = new GeocoderRequestBuilder().setAddress(address).setLanguage("ja").getGeocoderRequest();
             GeocodeResponse response;
-            LatLng latLng = new LatLng();
             response = new Geocoder().geocode(request);
-            if(response.getStatus().equals(OVER_QUERY_LIMIT)){
+            if (response.getStatus().equals(OVER_QUERY_LIMIT)) {
                 overQueryLimitFlag = true;
             }
-            
-            for(GeocoderResult result : response.getResults()){
+
+            for (GeocoderResult result : response.getResults()) {
                 return result.getGeometry().getLocation();
             }
-        }catch(Exception e){
-			logger.error(e);
+        } catch (Exception e) {
+            logger.error(e);
         }
         return null;
     }

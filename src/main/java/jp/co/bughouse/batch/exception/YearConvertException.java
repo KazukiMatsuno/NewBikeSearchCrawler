@@ -9,8 +9,9 @@ package jp.co.bughouse.batch.exception;
  *
  * @author user
  */
-public class YearConvertException extends RuntimeException{
-	public YearConvertException(String message){
-		super(message);
-	}
+public class YearConvertException extends RuntimeException {
+
+    public YearConvertException(String message) {
+        super(message);
+    }
 }
