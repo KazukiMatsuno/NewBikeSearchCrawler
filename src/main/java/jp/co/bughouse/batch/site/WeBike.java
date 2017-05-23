@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import jp.co.bughouse.batch.common.MyStringUtils;
 import jp.co.bughouse.batch.entity.BikeEntity;
 import jp.co.bughouse.batch.entity.ShopEntity;
+import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -26,7 +27,10 @@ import org.jsoup.select.Elements;
  * @author user
  */
 public class WeBike extends AbstractSite {
-    
+
+    // ロガー宣言
+    private static final Logger logger = Logger.getLogger(WeBike.class);
+
     public WeBike(String encode, int waitMS) {
         super(encode, waitMS);
     }
@@ -42,6 +46,7 @@ public class WeBike extends AbstractSite {
             String href = element.attr("href");
             if (href.startsWith(BASE_URL)) {
                 prefectureURLList.add(href);
+                logger.debug(href);
             }
         }
         return prefectureURLList;
@@ -59,7 +64,7 @@ public class WeBike extends AbstractSite {
                 String href = element.attr("href");
                 if (href.startsWith(BASE_URL)) {
                     shopURLList.add(href);
-                    System.out.println(href);
+                    logger.debug(href);
                 }
             }
 
@@ -81,26 +86,27 @@ public class WeBike extends AbstractSite {
         // 住所をHTMLから検索
         for (Element addressElement : shopDoc.select("[itemprop=address]")) {
             shopDto.setAddress(
-                    MyStringUtils.zenkakuToHankaku(
-                            MyStringUtils.unEscapeHtml(addressElement.text()).replace(" ", "")
-                    )
+                MyStringUtils.zenkakuToHankaku(
+                    MyStringUtils.unEscapeHtml(addressElement.text()).replace(" ", "")
+                )
             );
         }
 
         // 電話番号をHTMLから検索
         for (Element telephoneElement : shopDoc.select("[itemprop=telephone]")) {
             shopDto.setTel(
-                    MyStringUtils.zenkakuToHankaku(telephoneElement.text())
+                MyStringUtils.zenkakuToHankaku(telephoneElement.text())
             );
         }
 
         // ショップ名をHTMLから検索
         for (Element shopNameElement : shopDoc.select("[itemprop=name]")) {
             shopDto.setShopName(
-                    MyStringUtils.zenkakuToHankaku(shopNameElement.text())
+                MyStringUtils.zenkakuToHankaku(shopNameElement.text())
             );
         }
 
+        logger.debug(shopDto);
         return shopDto;
     }
 
@@ -123,9 +129,9 @@ public class WeBike extends AbstractSite {
                     Elements tdListPageElements = tbody.select("td.listpage");
                     // 本体価格
                     bikeDto.setPrice(getPrice(
-                            MyStringUtils.deleteBlank(
-                                    tdListPageElements.get(1).select("span.plice").text()
-                            )
+                        MyStringUtils.deleteBlank(
+                            tdListPageElements.get(1).select("span.plice").text()
+                        )
                     ));
                     // 年式
                     bikeDto.setYear(getYear(tdListPageElements.get(2).text()));
@@ -154,6 +160,7 @@ public class WeBike extends AbstractSite {
                     bikeDto.setComment(descMatcher.find() ? descMatcher.group(1) : "");
 
                 }
+                logger.debug(bikeDto);
                 bikeDtoList.add(bikeDto);
             }
             //pageの中にpn nextが無い場合は検索を終了する
@@ -173,7 +180,7 @@ public class WeBike extends AbstractSite {
         Matcher inspectionMatcher = Pattern.compile(pattern).matcher(inspectionStr);
         if (inspectionMatcher.find()) {
             Integer year = MyStringUtils.heiseiConvertAD(
-                    Integer.parseInt(inspectionMatcher.group(1))
+                Integer.parseInt(inspectionMatcher.group(1))
             );
 
             Integer month = Integer.parseInt(inspectionMatcher.group(2));
@@ -184,6 +191,7 @@ public class WeBike extends AbstractSite {
             }
         }
         // TODO:ロガーでinspectionStrを出力する
+        logger.info("車検 : " + inspectionStr + " : " + inspectionStr);
         return inspection;
     }
 
@@ -197,12 +205,15 @@ public class WeBike extends AbstractSite {
                 distance = NumberFormat.getInstance().parse(distanceMatcher.group(1)).intValue();
             } catch (ParseException e) {
                 // TODO: ロガーでdistanceStrを出力する
+                logger.info("走行距離 フォーマット不明 : " + distanceStr);
+                return null;
             }
         } else if (distanceStr.equals("-")) {
             //新車
             distance = 0;
         }
         // TODO: ロガーでdistanceStrを出力する
+        logger.info("走行距離 : " + distanceStr + " : " + distance);
         return distance;
     }
 
@@ -215,6 +226,7 @@ public class WeBike extends AbstractSite {
         }
 
         // TODO: ロガーでyearStrを出力する
+        logger.info("登録年数 : " + yearStr);
         return year;
     }
 
