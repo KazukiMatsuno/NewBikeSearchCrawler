@@ -24,6 +24,7 @@ public class Crawler {
     private static final Logger logger = Logger.getLogger(Crawler.class);
 
     public static void main(String[] args) {
+
         // 設定ファイルが読めない場合はエラーログを出力して終了する
         Properties prop = null;
         try {
@@ -50,25 +51,29 @@ public class Crawler {
 
         Db database = getDb(prop);
 
-        MainProcess[] process = new MainProcess[args.length];
-        for (int i = 0; i < args.length; i++) {
-            logger.info(args[i]);
-            try {
-                process[i] = new MainProcess(args[i], new MyJDBC(database))
+        try {
+            MainProcess[] process = new MainProcess[args.length];
+            for (int i = 0; i < args.length; i++) {
+                logger.info(args[i]);
+                try {
+                    process[i] = new MainProcess(args[i], new MyJDBC(database))
                         .setShopDataFetchFlag(shopFlag)
                         .setBikeDataFetchFlag(bikeFlag);
-                process[i].call();
-            } catch (Exception e) {
-                logger.error(e);
+                    process[i].call();
+                } catch (Exception e) {
+                    logger.error(e);
+                }
             }
+        } catch (Exception e) {
+            logger.error(e);
         }
     }
 
     private static Db getDb(Properties prop) {
         return Db.open(
-                prop.getProperty("URL"),
-                prop.getProperty("USER"),
-                prop.getProperty("PASS")
+            prop.getProperty("URL"),
+            prop.getProperty("USER"),
+            prop.getProperty("PASS")
         );
     }
 

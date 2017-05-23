@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import jp.co.bughouse.batch.entity.BikeEntity;
 import jp.co.bughouse.batch.entity.ShopEntity;
+import org.apache.log4j.Logger;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 
@@ -20,6 +21,8 @@ public abstract class AbstractSite {
 
     protected String encode;
     protected int waitMS;
+    // ロガー宣言
+    private static final Logger logger = Logger.getLogger(AbstractSite.class);
 
     public AbstractSite(String encode, int waitMS) {
         this.encode = encode;
@@ -47,7 +50,7 @@ public abstract class AbstractSite {
             Thread.sleep(waitMS);
         } catch (InterruptedException e) {
         }
-        System.out.println(url);
+		logger.info(url);
         return Jsoup.connect(url).validateTLSCertificates(false);
     }
 }
