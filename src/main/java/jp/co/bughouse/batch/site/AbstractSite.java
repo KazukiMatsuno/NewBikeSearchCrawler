@@ -7,6 +7,7 @@ package jp.co.bughouse.batch.site;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import jp.co.bughouse.batch.entity.BikeEntity;
 import jp.co.bughouse.batch.entity.ShopEntity;
 import org.apache.log4j.Logger;
@@ -29,9 +30,9 @@ public abstract class AbstractSite {
         this.waitMS = waitMS;
     }
 
-    abstract public List<String> getPrefectureURLList() throws IOException;
+    abstract public Set<String> getPrefectureURLList() throws IOException;
 
-    abstract public List<String> getShopURLList(String prefectureURL) throws IOException;
+    abstract public Set<String> getShopURLList(String prefectureURL) throws IOException;
 
     abstract public ShopEntity getShopDto(String shopUrl) throws IOException;
 
