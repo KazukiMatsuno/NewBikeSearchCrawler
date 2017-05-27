@@ -37,7 +37,7 @@ public class MJBike extends AbstractSite {
     }
     
     @Override
-    public Set<String> getPrefectureURLList() throws IOException {
+    public Set<String> getPrefectureURLSet() throws IOException {
         Document prefURLDoc = getJsoupConnection(BASE_URL + "/ubike/sch_dealersearch.asp", waitMS).get();
         Set<String> prefectureURLSet = new HashSet<>();
         
@@ -49,7 +49,7 @@ public class MJBike extends AbstractSite {
     }
 
     @Override
-    public Set<String> getShopURLList(String prefectureURL) throws IOException {
+    public Set<String> getShopURLSet(String prefectureURL) throws IOException {
         Document shopURLDoc = getJsoupConnection(prefectureURL, waitMS).get();
         Set<String> shopURLList = new HashSet<>();
         

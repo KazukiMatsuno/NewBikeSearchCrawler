@@ -40,7 +40,7 @@ public class WeBike extends AbstractSite {
     final static String BASE_URL = "https://moto.webike.net/shop/";
 
     @Override
-    public Set<String> getPrefectureURLList() throws IOException {
+    public Set<String> getPrefectureURLSet() throws IOException {
         Document prefURLDoc = getJsoupConnection(BASE_URL, waitMS).get();
 
         Set<String> prefectureURLSet = new HashSet<>();
@@ -55,7 +55,7 @@ public class WeBike extends AbstractSite {
     }
 
     @Override
-    public Set<String> getShopURLList(String prefectureURL) throws IOException {
+    public Set<String> getShopURLSet(String prefectureURL) throws IOException {
         Set<String> shopURLSet = new HashSet<>();
 
         //pdxCountは1開始～pn nextが無くなるまでインクリメントする
