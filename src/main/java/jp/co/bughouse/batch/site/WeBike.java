@@ -11,7 +11,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jp.co.bughouse.batch.common.MyStringUtils;
@@ -38,23 +40,23 @@ public class WeBike extends AbstractSite {
     final static String BASE_URL = "https://moto.webike.net/shop/";
 
     @Override
-    public List<String> getPrefectureURLList() throws IOException {
+    public Set<String> getPrefectureURLList() throws IOException {
         Document prefURLDoc = getJsoupConnection(BASE_URL, waitMS).get();
 
-        List<String> prefectureURLList = new ArrayList<>();
+        Set<String> prefectureURLSet = new HashSet<>();
         for (Element element : prefURLDoc.select(".mf_menu a")) {
             String href = element.attr("href");
             if (href.startsWith(BASE_URL)) {
-                prefectureURLList.add(href);
+                prefectureURLSet.add(href);
                 logger.debug(href);
             }
         }
-        return prefectureURLList;
+        return prefectureURLSet;
     }
 
     @Override
-    public List<String> getShopURLList(String prefectureURL) throws IOException {
-        List<String> shopURLList = new ArrayList<>();
+    public Set<String> getShopURLList(String prefectureURL) throws IOException {
+        Set<String> shopURLSet = new HashSet<>();
 
         //pdxCountは1開始～pn nextが無くなるまでインクリメントする
         for (Integer pdxCount = 1;; pdxCount++) {
@@ -63,7 +65,7 @@ public class WeBike extends AbstractSite {
             for (Element element : shopURLDoc.select("div.list a")) {
                 String href = element.attr("href");
                 if (href.startsWith(BASE_URL)) {
-                    shopURLList.add(href);
+                    shopURLSet.add(href);
                     logger.debug(href);
                 }
             }
@@ -73,7 +75,7 @@ public class WeBike extends AbstractSite {
                 break;
             }
         }
-        return shopURLList;
+        return shopURLSet;
     }
 
     @Override
