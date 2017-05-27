@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jp.co.bughouse.batch.common.MyStringUtils;
@@ -26,19 +28,6 @@ import org.jsoup.select.Elements;
  */
 public class MJBike extends AbstractSite {
     
-    public static void main(String[] args) throws IOException{
-        MJBike mjBike = new MJBike("", 1000);
-        for(String prefUrl : mjBike.getPrefectureURLList()){
-            for(String shopUrl : mjBike.getShopURLList(prefUrl)){
-//                System.out.println(mjBike.getShopDto(shopUrl));
-                for(BikeEntity bike : mjBike.getBikeDtoList(shopUrl)){
-                    System.out.println(bike);
-                }
-                
-            }
-        }
-    }
-    
     final static String BASE_URL = "http://www.mjbike.com";
     // ロガー宣言
     private static final Logger logger = Logger.getLogger(MJBike.class);
@@ -48,20 +37,21 @@ public class MJBike extends AbstractSite {
     }
     
     @Override
-    public List<String> getPrefectureURLList() throws IOException {
+    public Set<String> getPrefectureURLList() throws IOException {
         Document prefURLDoc = getJsoupConnection(BASE_URL + "/ubike/sch_dealersearch.asp", waitMS).get();
-        List<String> prefectureURLList = new ArrayList<>();
+        Set<String> prefectureURLSet = new HashSet<>();
         
         for(Element aTag : prefURLDoc.select(".footerbox_right a")){
-            prefectureURLList.add(aTag.attr("href"));
+            prefectureURLSet.add(aTag.attr("href"));
         }
-        return prefectureURLList;
+        
+        return prefectureURLSet;
     }
 
     @Override
-    public List<String> getShopURLList(String prefectureURL) throws IOException {
+    public Set<String> getShopURLList(String prefectureURL) throws IOException {
         Document shopURLDoc = getJsoupConnection(prefectureURL, waitMS).get();
-        List<String> shopURLList = new ArrayList<>();
+        Set<String> shopURLList = new HashSet<>();
         
         for(Element aTag : shopURLDoc.select(".bk_sch_dealerschlist_mframe1_1 a")){
             shopURLList.add(BASE_URL + "/ubike/" + aTag.attr("href"));
@@ -108,7 +98,7 @@ public class MJBike extends AbstractSite {
         List<BikeEntity> bikeEntityList = new ArrayList<>();
         
         Document bikeDoc = getJsoupConnection(bikeUrl, waitMS).data("code", shopId).get();
-System.out.println(shopId);
+        logger.info("ショップID : " + shopId);
         for(Element table : bikeDoc.select("#BukkenTable1108")){
             BikeEntity bikeEntity = new BikeEntity();
             {
@@ -147,47 +137,59 @@ System.out.println(shopId);
                 // 5カラム目：保障の有無
                 // 6カラム目：整備含 or 別
                 // 7カラム目：車検有無
-                System.out.println(elements.length > 6 ? getInspection(elements[6]) : null);
-                
-                
-                
-//System.out.println(MyStringUtils.unEscapeHtml(tags.text()));
+                bikeEntity.setInspection(elements.length > 6 ? getInspection(elements[6]) : null);
             }
             
             {
                 // 販売価格
+                Elements spanTags = table.select(".pricef");
+                bikeEntity.setPrice(getPrice(spanTags.get(0).text()));
             }
 
             {
                 // 走行距離
-            }
-            
-            {
+                Elements tdTags = table.select("td[width=80][align=center][valign=middle]");
+                bikeEntity.setDistance(getDistance(tdTags.get(0).text()));
                 // 登録年数
+                getYear(tdTags.get(1).text());
             }
-
-//            System.out.println(table);
         }
-        
-        
         return bikeEntityList;
     }
 
     @Override
     protected Integer getDistance(String distanceStr) {
-
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Integer distance = null;
+        Matcher distanceMatcher = Pattern.compile("([0-9,]+)km").matcher(distanceStr);
+        if(distanceMatcher.find()){
+            distance = Integer.parseInt(distanceMatcher.group(1).replaceAll(",", ""));
+        }
+        logger.info("走行距離：" + distanceStr + " : " + distance);
+        return distance;
     }
 
     @Override
     protected Integer getYear(String yearStr) {
-        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Integer year = null;
+        Matcher yearMatcher = Pattern.compile("([0-9]+)年").matcher(yearStr);
+        if (yearMatcher.find()) {
+            year = Integer.parseInt(yearMatcher.group(1));
+        }
+
+        // TODO: ロガーでyearStrを出力する
+        logger.info("登録年数 : " + yearStr + " : " + year);
+        return year;
     }
 
     @Override
     protected Integer getPrice(String priceStr) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Integer price = null;
+        Matcher priceMatcher = Pattern.compile("([0-9\\.]+)").matcher(priceStr);
+        if (priceMatcher.find()){
+            price = (int) (Float.parseFloat(priceStr) * 10000);
+        }
+        logger.info("価格 : " + priceStr + " : " + price);
+        return price;
     }
 
     @Override
