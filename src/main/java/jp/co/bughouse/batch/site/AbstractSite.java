@@ -30,9 +30,9 @@ public abstract class AbstractSite {
         this.waitMS = waitMS;
     }
 
-    abstract public Set<String> getPrefectureURLList() throws IOException;
+    abstract public Set<String> getPrefectureURLSet() throws IOException;
 
-    abstract public Set<String> getShopURLList(String prefectureURL) throws IOException;
+    abstract public Set<String> getShopURLSet(String prefectureURL) throws IOException;
 
     abstract public ShopEntity getShopDto(String shopUrl) throws IOException;
 

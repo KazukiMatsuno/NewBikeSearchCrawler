@@ -58,8 +58,8 @@ public class MainProcess implements Callable {
             int updateCount = myJdbc.updateShopFlag(siteName);
             logger.info("ShopFlagUpdateCount : " + updateCount);
 
-            for (String prefectureUrl : site.getPrefectureURLList()) {
-                for (String shopUrl : site.getShopURLList(prefectureUrl)) {
+            for (String prefectureUrl : site.getPrefectureURLSet()) {
+                for (String shopUrl : site.getShopURLSet(prefectureUrl)) {
                     ShopEntity shopEntity = site.getShopDto(shopUrl);
                     // MShopをアップデート
                     myJdbc.updateMShop(shopEntity);
