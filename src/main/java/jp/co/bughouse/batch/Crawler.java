@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import jp.co.bughouse.batch.db.jdbc.MyJDBC;
 import org.apache.log4j.Logger;
 
@@ -52,6 +54,7 @@ public class Crawler {
         Db database = getDb(prop);
 
         try {
+            ExecutorService executor = Executors.newFixedThreadPool(5);
             MainProcess[] process = new MainProcess[args.length];
             for (int i = 0; i < args.length; i++) {
                 logger.info(args[i]);
@@ -59,7 +62,8 @@ public class Crawler {
                     process[i] = new MainProcess(args[i], new MyJDBC(database))
                         .setShopDataFetchFlag(shopFlag)
                         .setBikeDataFetchFlag(bikeFlag);
-                    process[i].call();
+                    
+                    executor.submit(process[i]);
                 } catch (Exception e) {
                     logger.error(e);
                 }
