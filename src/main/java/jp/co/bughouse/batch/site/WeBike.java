@@ -11,8 +11,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +43,7 @@ public class WeBike extends AbstractSite {
 
     @Override
     public Set<String> getPrefectureURLSet() throws IOException {
+        logger.info("START");
         Document prefURLDoc = getJsoupConnection(BASE_URL, waitMS).get();
 
         Set<String> prefectureURLSet = new HashSet<>();
@@ -51,16 +54,21 @@ public class WeBike extends AbstractSite {
                 logger.debug(href);
             }
         }
+        logger.info("END");
         return prefectureURLSet;
     }
 
     @Override
     public Set<String> getShopURLSet(String prefectureURL) throws IOException {
+        logger.info("START");
         Set<String> shopURLSet = new HashSet<>();
 
         //pdxCountは1開始～pn nextが無くなるまでインクリメントする
         for (Integer pdxCount = 1;; pdxCount++) {
-            Document shopURLDoc = getJsoupConnection(prefectureURL, waitMS).data("pdx", pdxCount.toString()).get();
+            Map<String, String> dataMap = new HashMap<>();
+            dataMap.put("pdx", pdxCount.toString());
+            
+            Document shopURLDoc = getJsoupConnection(prefectureURL, waitMS, dataMap).get();
 
             for (Element element : shopURLDoc.select("div.list a")) {
                 String href = element.attr("href");
@@ -70,16 +78,29 @@ public class WeBike extends AbstractSite {
                 }
             }
 
-            //pageの中にpn nextが無い場合は検索を終了する
-            if (shopURLDoc.select("a.pn.next").isEmpty()) {
+            // pageの中にpn nextが無い場合
+            // もしくは台数が0のお店があった時点で検索を終了する
+            boolean countZeroFlag = false;
+            Elements tdTags = shopURLDoc.select("div.list tbody:not(.line) td:not([width=150]):not([width=200]):not([width=350]):not(.text)");
+            // 偶数の場合のみ処理する
+            for(int i = 0; i < tdTags.size(); i = i + 2){
+                if(tdTags.get(i).text().equals("0")){
+                    countZeroFlag = true;
+                }
+            }
+            
+            // 台数が0が存在する or 次へページが無い場合はループ終了
+            if (countZeroFlag || shopURLDoc.select("a.pn.next").isEmpty()) {
                 break;
             }
         }
+        logger.info("END");
         return shopURLSet;
     }
 
     @Override
     public ShopEntity getShopDto(String shopURL) throws IOException {
+        logger.info("START");
         Document shopDoc = getJsoupConnection(shopURL, waitMS).get();
 
         ShopEntity shopDto = new ShopEntity();
@@ -109,15 +130,21 @@ public class WeBike extends AbstractSite {
         }
 
         logger.debug(shopDto);
+        logger.info("END");
         return shopDto;
     }
 
     @Override
     public List<BikeEntity> getBikeDtoList(String shopURL) throws IOException {
+        logger.info("START");
         List<BikeEntity> bikeDtoList = new ArrayList<>();
         //pdxCountは1開始～pn nextが無くなるまでインクリメントする
         for (Integer pdxCount = 1;; pdxCount++) {
-            Document bikeDoc = getJsoupConnection(shopURL, waitMS).data("per", "100").data("pdx", pdxCount.toString()).get();
+            Map<String, String> dataMap = new HashMap<>();
+            dataMap.put("per", "100");
+            dataMap.put("pdx", pdxCount.toString());
+            
+            Document bikeDoc = getJsoupConnection(shopURL, waitMS, dataMap).get();
             for (Element tbody : bikeDoc.select("tbody.listset")) {
                 BikeEntity bikeDto = new BikeEntity();
                 bikeDto.setShopUrl(shopURL);
@@ -171,6 +198,7 @@ public class WeBike extends AbstractSite {
             }
         }
 
+        logger.info("END");
         return bikeDtoList;
     }
 
@@ -235,6 +263,7 @@ public class WeBike extends AbstractSite {
     @Override
     protected Integer getPrice(String priceStr) {
         Integer price = null;
+        Matcher defaultPriceMatcher = Pattern.compile("([0-9\\.]+)").matcher(priceStr);
         Matcher priceMatcher = Pattern.compile("([0-9\\.]+)(万|千)").matcher(priceStr);
         if (priceMatcher.find()) {
             String priceMatchStr = priceMatcher.group(1);
@@ -246,6 +275,9 @@ public class WeBike extends AbstractSite {
                     price = (int) (Float.parseFloat(priceMatchStr) * 1000);
                     break;
             }
+        }else if(defaultPriceMatcher.find()){
+            String priceMatcherStr = priceMatcher.group(1);
+            price = (int)(Float.parseFloat(priceMatcherStr) * 10000);
         }
         logger.info("価格 : " + priceStr + " : " + price);
         return price;

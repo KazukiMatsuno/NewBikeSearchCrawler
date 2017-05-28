@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,6 +42,7 @@ public class GooBike extends AbstractSite {
 
     @Override
     public Set<String> getPrefectureURLSet() throws IOException {
+        logger.info("START");
         Document prefURLDoc = getJsoupConnection(BASE_URL + "/shop/", waitMS).get();
         Set<String> prefectureURLSet = new HashSet<>();
         
@@ -47,11 +50,13 @@ public class GooBike extends AbstractSite {
             prefectureURLSet.add(BASE_URL + aTag.attr("href"));
             logger.debug(BASE_URL + aTag.attr("href"));
         }
+        logger.info("END");
         return prefectureURLSet;
     }
 
     @Override
     public Set<String> getShopURLSet(String prefectureURL) throws IOException {
+        logger.info("START");
         Set<String> shopURLSet = new HashSet<>();
         Document shopURLDoc = getJsoupConnection(prefectureURL, waitMS).get();
         
@@ -60,11 +65,13 @@ public class GooBike extends AbstractSite {
             logger.debug(BASE_URL + aTag.attr("href").replace(ZAIKO_URL, ""));
         }
         
+        logger.info("END");
         return shopURLSet;
     }
 
     @Override
     public ShopEntity getShopDto(String shopUrl) throws IOException {
+        logger.info("START");
         ShopEntity shopDto = new ShopEntity();
         shopDto.setUrl(shopUrl);
         shopDto.setSiteName("GooBike");
@@ -84,17 +91,23 @@ public class GooBike extends AbstractSite {
         String[] telAndFax = ddTags.get(2).text().split(" ");
         shopDto.setTel(telAndFax[1]);
         
+        logger.info("END");
         return shopDto;
     }
 
     @Override
     public List<BikeEntity> getBikeDtoList(String shopUrl) throws IOException {
+        logger.info("START");
         List<BikeEntity> bikeDtoList = new ArrayList<>();
         String shopId   = getShopIdFromShopUrl(shopUrl);
         logger.info("ショップID : " + shopId);
         // offsetは0スタート
         for (Integer offset = 0;; offset++) {
-            Document bikeDoc = getJsoupConnection(BASE_URL + ZAIKO_BASE_URL, waitMS).data("offset", offset.toString()).data("client_id", shopId).get();
+            Map<String, String> dataMap = new HashMap<>();
+            dataMap.put("offset", offset.toString());
+            dataMap.put("client_id", shopId);
+            
+            Document bikeDoc = getJsoupConnection(BASE_URL + ZAIKO_BASE_URL, waitMS, dataMap).get();
 
             Elements tags = bikeDoc.select("table[width=100%][border=0][cellspacing=0][cellpadding=0] tr[bgcolor=#FFFFFF]");
                         
@@ -160,8 +173,8 @@ public class GooBike extends AbstractSite {
         }
         
         
+        logger.info("END");
         return bikeDtoList;
-        
     }
 
     @Override

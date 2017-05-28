@@ -21,6 +21,7 @@ import org.apache.log4j.Logger;
 public class MainProcess implements Callable {
 
     private final String SITE_PACKAGE = "jp.co.bughouse.batch.site.{0}";
+    private final int WAIT_MS = 500;
     private final AbstractSite site;
     private final MyJDBC myJdbc;
     private final String siteName;
@@ -33,8 +34,8 @@ public class MainProcess implements Callable {
         logger.info(siteName);
         this.siteName = siteName;
         site = (AbstractSite) Class.forName(MessageFormat.format(SITE_PACKAGE, this.siteName))
-                .getConstructor(new Class[]{String.class, int.class})
-                .newInstance(new Object[]{"UTF-8", 1000});
+            .getConstructor(new Class[]{String.class, int.class})
+            .newInstance(new Object[]{"UTF-8", WAIT_MS});
 
         this.myJdbc = myJdbc;
     }

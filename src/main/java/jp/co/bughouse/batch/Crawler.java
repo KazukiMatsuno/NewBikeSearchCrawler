@@ -54,7 +54,7 @@ public class Crawler {
         Db database = getDb(prop);
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(5);
+            ExecutorService executor = Executors.newFixedThreadPool(args.length);
             MainProcess[] process = new MainProcess[args.length];
             for (int i = 0; i < args.length; i++) {
                 logger.info(args[i]);

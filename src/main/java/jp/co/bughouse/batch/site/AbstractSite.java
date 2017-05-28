@@ -7,6 +7,7 @@ package jp.co.bughouse.batch.site;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import jp.co.bughouse.batch.entity.BikeEntity;
 import jp.co.bughouse.batch.entity.ShopEntity;
@@ -51,7 +52,21 @@ public abstract class AbstractSite {
             Thread.sleep(waitMS);
         } catch (InterruptedException e) {
         }
-		logger.info(url);
+        logger.info(url);
         return Jsoup.connect(url).validateTLSCertificates(false);
+    }
+    
+    public Connection getJsoupConnection(String url, int waitMS, Map<String, String> dataMap){
+        try {
+            Thread.sleep(waitMS);
+        } catch(InterruptedException e){}
+        
+        // ロガー用
+        StringBuilder sb = new StringBuilder();
+        for(Map.Entry<String, String> data : dataMap.entrySet()) {
+            sb.append(data.getKey()).append("=").append(data.getValue()).append("&");
+        }
+        logger.info(url + "?" + sb.toString());
+        return Jsoup.connect(url).validateTLSCertificates(false).data(dataMap);
     }
 }
